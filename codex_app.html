@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Codex: The Revision Trials</title>
+    <style>
+        :root { --bg: #0d1117; --panel: #161b22; --accent: #58a6ff; --text: #c9d1d9; --success: #238636; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; height: 100vh; display: flex; flex-direction: column; }
+        header { background: var(--panel); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #30363d; }
+        .nav-buttons button { background: #21262d; color: white; border: 1px solid #30363d; padding: 8px 12px; cursor: pointer; border-radius: 4px; margin-left: 5px; }
+        .nav-buttons button.active { border-color: var(--accent); color: var(--accent); background: #111; }
+        main { display: flex; flex: 1; overflow: hidden; }
+        .editor-container, .preview-container { flex: 1; display: flex; flex-direction: column; padding: 15px; }
+        textarea { flex: 1; background: #000; color: #a5d6ff; border: 1px solid #30363d; padding: 20px; font-family: 'Consolas', monospace; font-size: 14px; resize: none; border-radius: 8px; outline: none; line-height: 1.5; }
+        iframe { flex: 1; background: white; border-radius: 8px; border: none; }
+        .label { font-size: 11px; margin-bottom: 8px; color: #8b949e; text-transform: uppercase; letter-spacing: 2px; }
+        .run-btn { background: var(--success); color: white; border: none; padding: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; border-radius: 6px; }
+        #quest-overlay { position: fixed; bottom: 30px; left: 30px; background: #161b22; border: 1px solid #30363d; padding: 20px; border-radius: 12px; max-width: 350px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        .difficulty { font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: 10px; text-transform: uppercase; }
+        .med { background: #d29922; color: black; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div><strong>CODEX REVISION</strong> | <span id="current-quest-title">Quest 1</span></div>
+    <div class="nav-buttons">
+        <button onclick="loadQuest(1)" id="btn1">Quest 1</button>
+        <button onclick="loadQuest(2)" id="btn2">Quest 2</button>
+        <button onclick="loadQuest(3)" id="btn3">Quest 3</button>
+        <button onclick="loadQuest(4)" id="btn4">Quest 4</button>
+        <button onclick="loadQuest(5)" id="btn5">Quest 5</button>
+    </div>
+</header>
+
+<main>
+    <div class="editor-container">
+        <div class="label">Code Input</div>
+        <textarea id="code-editor" spellcheck="false"></textarea>
+        <button class="run-btn" onclick="runCode()">⚡ RUN CODE</button>
+    </div>
+    <div class="preview-container">
+        <div class="label">Live Result</div>
+        <iframe id="preview-window"></iframe>
+    </div>
+</main>
+
+<div id="quest-overlay">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <strong style="color: var(--accent)" id="q-title-display">Quest</strong>
+        <span id="diff-tag" class="difficulty med">Challenge</span>
+    </div>
+    <p id="quest-desc" style="font-size: 14px; margin: 15px 0; line-height: 1.4; color: #ecf2f8;"></p>
+    <div style="font-size: 11px; color: #8b949e; border-top: 1px solid #30363d; padding-top: 10px;">
+        💡 Logic Check: <span id="mentor-tip"></span>
+    </div>
+</div>
+
+<script>
+    const quests = {
+        1: {
+            title: "Quest 1: Text Hierarchy",
+            tip: "Use margin-bottom to create space between the heading and paragraph.",
+            desc: "Create an <h1> and a <p>. The <h1> should be 'navy' and the <p> should have a font-size of 18px and be 'grey'.",
+            code: "\n<h1>My Title</h1>\n<p>My description goes here...</p>\n\n<style>\n\n</style>"
+        },
+        2: {
+            title: "Quest 2: The Perfect Button",
+            tip: "Remember that 'padding' is space inside the button, 'margin' is space outside.",
+            desc: "Style a button. It must have 15px padding on the top/bottom and 40px on the left/right. Remove the default border.",
+            code: "<button>Click Me</button>\n\n<style>\n  button {\n    background: #58a6ff;\n    color: white;\n    /* Add padding and border properties */\n  }\n</style>"
+        },
+        3: {
+            title: "Quest 3: Simple Flexbox Row",
+            tip: "Setting 'display: flex' on the parent affects the children.",
+            desc: "Put three <div> boxes in a row. Use 'justify-content' to make them sit exactly in the center of the page.",
+            code: "<div class='container'>\n  <div class='box'>1</div>\n  <div class='box'>2</div>\n  <div class='box'>3</div>\n</div>\n\n<style>\n  .container {\n    /* Make this a flex container */\n  }\n  .box {\n    width: 50px;\n    height: 50px;\n    background: tomato;\n    margin: 5px;\n  }\n</style>"
+        },
+        4: {
+            title: "Quest 4: Nested Card Logic",
+            tip: "Think about the parent container vs the child image.",
+            desc: "Build a card with an image and text. The image must fill the top half, and the text must have 20px of space (padding) around it so it doesn't touch the edges.",
+            code: "<div class='card'>\n  <img src='https://via.placeholder.com/300x150'>\n  <div class='content'>\n    <h3>Product Name</h3>\n    <p>This is a great product.</p>\n  </div>\n</div>\n\n<style>\n  .card { width: 300px; border: 1px solid #ddd; }\n  img { width: 100%; }\n  .content {\n    /* Add padding here */\n  }\n</style>"
+        },
+        5: {
+            title: "Quest 5: The Vertical Center",
+            tip: "To center something vertically, the container needs a height (like 'height: 100vh').",
+            desc: "The Final Review: Take a single <div> and place it EXACTLY in the middle of the screen (both horizontally and vertically).",
+            code: "<div class='screen'>\n  <div class='target'>I am centered!</div>\n</div>\n\n<style>\n  .screen {\n     /* Use Flexbox to center the target */\n  }\n  .target {\n    padding: 20px;\n    background: gold;\n  }\n</style>"
+        }
+    };
+
+    let currentQuest = 1;
+
+    function loadQuest(num) {
+        document.querySelectorAll('.nav-buttons button').forEach(b => b.classList.remove('active'));
+        document.getElementById('btn' + num).classList.add('active');
+        currentQuest = num;
+        document.getElementById('current-quest-title').innerText = quests[num].title;
+        document.getElementById('q-title-display').innerText = quests[num].title;
+        document.getElementById('quest-desc').innerText = quests[num].desc;
+        document.getElementById('mentor-tip').innerText = quests[num].tip;
+        document.getElementById('code-editor').value = quests[num].code;
+        runCode();
+    }
+
+    function runCode() {
+        const code = document.getElementById('code-editor').value;
+        const preview = document.getElementById('preview-window').contentWindow.document;
+        preview.open();
+        preview.write("<style>body{margin:0; font-family:sans-serif;}</style>" + code);
+        preview.close();
+    }
+
+    loadQuest(1);
+</script>
+
+</body>
+</html>
